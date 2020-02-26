@@ -2,32 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
 )
-
-func addCORS(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Max-Age", "86400")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
-func middleWareHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// t := time.Now()
-		// Add base headers
-		addCORS(c)
-		// Run next function
-		c.Next()
-		// // Log request
-		// log.Infof("%v %v %v %s", c.Request.RemoteAddr, c.Request.Method, c.Request.URL, time.Since(t))
-	}
-}
 
 func main() {
 	err := godotenv.Load()
@@ -41,7 +22,12 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	router.Use(middleWareHandler(), gin.Recovery())
+	
+	// Recovery middleware recovers from any panics and writes a 500 if there was one.
+	router.Use(gin.Recovery())
+
+	//CORS
+	router.Use(cors.Default())
 
 	//router.Static("/asset-manifest.json", "./blog-go-client/build/asset-manifest.json")
 	//router.Static("/service-worker.js", "./blog-go-client/build/service-worker.js")
