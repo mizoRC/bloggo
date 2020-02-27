@@ -1,24 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"log"
-	"os"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Printf("No .env file loaded")
-	}
+	// LOAD ENV VARS INTO GLOBAL CONSTANTS HANDLER
+	loadConstants()
 
-	// configure server port
-	port := os.Getenv("PORT")
-	stringPort := fmt.Sprintf(":%v", port)
+	// SET GLOBAL MAIN CONSTANTS FROM GLOBAL HANDLER
+	var constants Constants
+	constants.getConstants()
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -40,8 +35,11 @@ func main() {
 		api.GET("/ping", ping)
 	}
 
-	log.Printf("Starting server on %v with stringPort %v\n", port, stringPort)
+	postsPath := getPostStoragePath()
+	log.Printf("POSTS STORAGE PATH %v", postsPath)
+
+	log.Printf("Starting server on %v with stringPort %v\n", constants.Port, constants.StringPort)
 	printName("BLOG-GO")
 
-	router.Run(stringPort)
+	router.Run(constants.StringPort)
 }
