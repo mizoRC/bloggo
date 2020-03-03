@@ -1,23 +1,28 @@
 package main
 
 import (
+	Api "./api"
+	Config "./config"
+	DB "./db"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 )
 
+var MongoClient *mongo.Client
+
 func main() {
 	// LOAD ENV VARS INTO GLOBAL CONSTANTS HANDLER
-	loadConstants()
+	Config.Configure()
 
-	// SET GLOBAL MAIN CONSTANTS FROM GLOBAL HANDLER
-	var constants Constants
-	constants.getConstants()
+	// CONFIGURE MONGO CONNECTION
+	DB.Connect()
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	
+
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 
@@ -30,16 +35,16 @@ func main() {
 	router.Use(static.Serve("/", static.LocalFile("./blog-go-client/build/", true)))
 
 	// Setup route group for the API
-	api := router.Group("/api")
+	apiRouter := router.Group("/api")
 	{
-		api.GET("/ping", ping)
+		apiRouter.GET("/ping", Api.Ping)
+		apiRouter.GET("/posts", Api.GetPosts)
+		apiRouter.GET("/post", Api.GetPost)
+		apiRouter.POST("/post", Api.SavePost)
 	}
 
-	postsPath := getPostStoragePath()
-	log.Printf("POSTS STORAGE PATH %v", postsPath)
-
-	log.Printf("Starting server on %v with stringPort %v\n", constants.Port, constants.StringPort)
+	log.Printf("Starting server on %v with stringPort %v\n", Config.Constants.Port, Config.Constants.StringPort)
 	printName("BLOG-GO")
 
-	router.Run(constants.StringPort)
+	router.Run(Config.Constants.StringPort)
 }
